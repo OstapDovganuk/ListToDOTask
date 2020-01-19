@@ -20,7 +20,7 @@ namespace TODOHTTPApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string con = "Server=(localdb)\\mssqllocaldb;Database=test1;Trusted_Connection=True;";
+            string con = "Server=(localdb)\\mssqllocaldb;Database=WebAPITasks;Trusted_Connection=True;";
             services.AddDbContext<TaskContext>(options => options.UseSqlServer(con));
             services.AddSwaggerDocument();  
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);            
