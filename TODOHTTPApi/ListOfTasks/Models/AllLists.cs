@@ -13,5 +13,6 @@ namespace ListOfTasks.Models
         public static ToDoList planned_tasks = new ToDoList();
         public static ToDoList important_tasks = new ToDoList();
         public static ToDoList today_tasks = new ToDoList();
+        public static bool first = true;
     }
 }

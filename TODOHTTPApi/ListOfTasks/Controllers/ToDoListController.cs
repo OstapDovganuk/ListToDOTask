@@ -11,60 +11,54 @@ namespace ListOfTasks.Controllers
 {
     public class ToDoListController : Controller
     {
-        static ToDoTasksClient _client = new ToDoTasksClient();
-
-        static ToDoListController()
-        {
-            GetAllList();
-        }
-
-        static async void GetAllList()
-        {
-            var tasks = await _client.GetTasksAsync();           
-            ToDoList toDoList = new ToDoList();
-            if (tasks != null)
+        ToDoTasksClient _client = new ToDoTasksClient();
+        public async Task<IActionResult> Index()
+        {     
+            if(first)
             {
-                var sort_tasks = tasks.OrderBy(a => a.TaskListId);
-                string _listName = sort_tasks.First().TaskListId;
-
-                foreach (var item in sort_tasks)
+                var tasks = await _client.GetTasksAsync();
+                ToDoList toDoList = new ToDoList();
+                if (tasks != null)
                 {
-                    if (item.Isactive != true)
+                    var sort_tasks = tasks.OrderBy(a => a.TaskListId);
+                    string _listName = sort_tasks.First().TaskListId;
+
+                    foreach (var item in sort_tasks)
                     {
-                        if (_listName == item.TaskListId)
+                        if (item.Isactive != true)
                         {
-                            toDoList._ToDoList.Add(item);
+                            if (_listName == item.TaskListId)
+                            {
+                                toDoList._ToDoList.Add(item);
+                            }
+                            else
+                            {
+                                toDoList.Name = _listName;
+                                _AllLists.Add(toDoList);
+                                toDoList = new ToDoList();
+                                _listName = item.TaskListId;
+                                toDoList.Name = _listName;
+                                toDoList._ToDoList.Add(item);
+                            }
                         }
-                        else
+                        all_tasks._ToDoList.Add(item);
+                        if (item.Date != null)
                         {
-                            toDoList.Name = _listName;
-                            _AllLists.Add(toDoList);
-                            toDoList = new ToDoList();
-                            _listName = item.TaskListId;
-                            toDoList.Name = _listName;
-                            toDoList._ToDoList.Add(item);
+                            planned_tasks._ToDoList.Add(item);
+                        }
+                        if (item.Taskimportance.ToString() == "High")
+                        {
+                            important_tasks._ToDoList.Add(item);
+                        }
+                        if (item.Date == DateTime.Now.Date)
+                        {
+                            today_tasks._ToDoList.Add(item);
                         }
                     }
-                    all_tasks._ToDoList.Add(item);
-                    if (item.Date != null)
-                    {
-                        planned_tasks._ToDoList.Add(item);
-                    }
-                    if (item.Taskimportance.ToString() == "High")
-                    {
-                        important_tasks._ToDoList.Add(item);
-                    }
-                    if (item.Date == DateTime.Now.Date)
-                    {
-                        today_tasks._ToDoList.Add(item);
-                    }
+                    _AllLists.Add(toDoList);
                 }
-                _AllLists.Add(toDoList);
+                first = false;
             }
-        }
-        // GET: ToDoList
-        public IActionResult Index()
-        {          
             return View(_AllLists);
         }
         public ActionResult Create()
@@ -84,21 +78,19 @@ namespace ListOfTasks.Controllers
             }
             return View(taskList);
         }
-
         public ActionResult Edit(string list)
         {
             if (list == null)
             {
                 return NotFound();
             }
-            _currentList = list;
             ViewBag.Key = list;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string name, string key)
+        public IActionResult Edit(string name, string key)
         {
             var item = _AllLists.FirstOrDefault(a => a.Name == _currentList);
             item.Name = name;
@@ -107,7 +99,7 @@ namespace ListOfTasks.Controllers
                 foreach (var t in item._ToDoList)
                 {
                     t.TaskListId = name;
-                    await _client.PutToDoTaskAsync(t.ToDoTaskId, t);
+                    _client.PutToDoTaskAsync(t.ToDoTaskId, t);
                 }
             }
             return RedirectToAction(nameof(Index));
@@ -120,14 +112,18 @@ namespace ListOfTasks.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string key)
+        public IActionResult DeleteConfirmed(string key)
         {
-            var item = _AllLists.FirstOrDefault(a=>a.Name==key);
+            var item = _AllLists.FirstOrDefault(a => a.Name == key);
             if (item._ToDoList != null)
             {
                 foreach (var t in item._ToDoList)
                 {
-                    await _client.DeleteToDoTaskAsync(t.ToDoTaskId);
+                    _client.DeleteToDoTaskAsync(t.ToDoTaskId);
+                    all_tasks._ToDoList.Remove(t);
+                    planned_tasks._ToDoList.Remove(t);
+                    important_tasks._ToDoList.Remove(t);
+                    today_tasks._ToDoList.Remove(t);
                 }
             }
             _AllLists.Remove(item);
@@ -142,12 +138,10 @@ namespace ListOfTasks.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //Додаємо задачу
         public IActionResult AddTask(ToDoTask task)
         {
             ViewData["ListId"] = _currentList;
             task.CreateDate = DateTime.Now.ToString();
-            //task.TaskListId = _currentList;
             if (ModelState.IsValid)
             {
                 if (task.IsMultipleTask != true)
@@ -157,7 +151,7 @@ namespace ListOfTasks.Controllers
                     {
                         if (t.Title == task.Title)
                         {
-                            ModelState.AddModelError("", "Error double");
+                            ModelState.AddModelError("", "Task with this Title exist! Change Title or made task Multiple.");
                             return View(task);
                         }
                     }
@@ -180,7 +174,7 @@ namespace ListOfTasks.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ModelState.AddModelError("", "Incorrect");
+            ModelState.AddModelError("", "Wrong data!!!");
             return View(task);
         }
 
@@ -198,8 +192,8 @@ namespace ListOfTasks.Controllers
             var task = SortOrder(sort, Task_list._ToDoList);
             return View(task);
         }
-        public async Task<IActionResult> Complet(int id)
-        { 
+        public IActionResult Complet(int id)
+        {
             var tasks = _AllLists.FirstOrDefault(a => a.Name == _currentList);
             var item = tasks._ToDoList.Find(a => a.ToDoTaskId == id);
             all_tasks._ToDoList.Remove(item);
@@ -208,7 +202,7 @@ namespace ListOfTasks.Controllers
             today_tasks._ToDoList.Remove(item);
             item.IsDeleted = true;
             item.Isactive = true;
-            await _client.PutToDoTaskAsync(id, item);
+            _client.PutToDoTaskAsync(id, item);
             tasks._ToDoList.Remove(item);
             all_tasks._ToDoList.Add(item);
             planned_tasks._ToDoList.Add(item);
@@ -306,31 +300,42 @@ namespace ListOfTasks.Controllers
             var edit_task = _AllLists.FirstOrDefault(a => a.Name == _currentList)._ToDoList.Find(a => a.ToDoTaskId == id);
             if (edit_task != null)
             {
-                ViewBag.ListName = edit_task.TaskListId;
+                ViewData["ListId"] = edit_task.TaskListId;
                 return View(edit_task);
             }
             return RedirectToAction("Tasks", "ToDoList", new { list = _currentList });
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditTask(int id, ToDoTask task)
+        public IActionResult EditTask(int id, ToDoTask task)
         {
-            var edit_task = _AllLists.FirstOrDefault(a => a.Name == _currentList)._ToDoList.Find(a => a.ToDoTaskId == id);
-            var lists = _AllLists.FirstOrDefault(a => a.Name == _currentList);
-            lists._ToDoList.Remove(edit_task);
-            all_tasks._ToDoList.Remove(edit_task);
-            planned_tasks._ToDoList.Remove(edit_task);
-            important_tasks._ToDoList.Remove(edit_task);
-            today_tasks._ToDoList.Remove(edit_task);
-            task.TaskListId = _currentList;
-            task.CreateDate = DateTime.Now.ToString();
-            lists._ToDoList.Add(task);
-            all_tasks._ToDoList.Add(edit_task);
-            planned_tasks._ToDoList.Add(edit_task);
-            important_tasks._ToDoList.Add(edit_task);
-            today_tasks._ToDoList.Add(edit_task);
-            await _client.PutToDoTaskAsync(id, task);
-            return RedirectToAction("Tasks", "ToDoList", new { list = _currentList });
+            if (ModelState.IsValid)
+            {
+                var edit_task = _AllLists.FirstOrDefault(a => a.Name == _currentList)._ToDoList.Find(a => a.ToDoTaskId == id);
+                var lists = _AllLists.FirstOrDefault(a => a.Name == _currentList);
+                var task_title = _AllLists.FirstOrDefault(a => a.Name == _currentList)._ToDoList.Find(a => a.Title == task.Title);
+                if (task_title != null)
+                {
+                    ModelState.AddModelError("", "Task with this Title exist! Change Title.");
+                    return View(task);
+                }
+                lists._ToDoList.Remove(edit_task);
+                all_tasks._ToDoList.Remove(edit_task);
+                planned_tasks._ToDoList.Remove(edit_task);
+                important_tasks._ToDoList.Remove(edit_task);
+                today_tasks._ToDoList.Remove(edit_task);
+                task.TaskListId = _currentList;
+                task.CreateDate = DateTime.Now.ToString();
+                lists._ToDoList.Add(task);
+                all_tasks._ToDoList.Add(edit_task);
+                planned_tasks._ToDoList.Add(edit_task);
+                important_tasks._ToDoList.Add(edit_task);
+                today_tasks._ToDoList.Add(edit_task);
+                _client.PutToDoTaskAsync(id, task);
+                return RedirectToAction("Tasks", "ToDoList", new { list = _currentList });
+            }
+            ModelState.AddModelError("", "Wrong data!!!");
+            return View(task);
         }
         public List<ToDoTask> SortOrder(string sort, List<ToDoTask> toDoTasks)
         {

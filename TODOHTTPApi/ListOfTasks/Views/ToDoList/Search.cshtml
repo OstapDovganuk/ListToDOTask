@@ -25,39 +25,45 @@
             <th>
                 IsMultipleTask
             </th>
+            <th>
+                ListName
+            </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Title)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Description)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Taskimportance)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Date)
-                </td>
-                <td>
-                    <a asp-controller="TaskLists" asp-action="Complet" asp-route-id="@item.ToDoTaskId">Complet</a>
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.CreateDate)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.IsMultipleTask)
-                </td>
-                <td>
-                    <a asp-action="EditTask" asp-route-id="@item.ToDoTaskId">Edit</a> |
-                    <a asp-action="DeleteTask" asp-route-id="@item.ToDoTaskId">Delete</a>
-                </td>
-            </tr>
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Taskimportance)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Date)
+            </td>
+            <td>
+                <a asp-controller="TaskLists" asp-action="Complet" asp-route-id="@item.ToDoTaskId">Complet</a>
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreateDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsMultipleTask)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TaskListId)
+            </td>
+            <td>
+                <a asp-action="EditTask" asp-route-id="@item.ToDoTaskId">Edit</a> |
+                <a asp-action="DeleteTask" asp-route-id="@item.ToDoTaskId">Delete</a>
+            </td>
+        </tr>
         }
     </tbody>
 </table>

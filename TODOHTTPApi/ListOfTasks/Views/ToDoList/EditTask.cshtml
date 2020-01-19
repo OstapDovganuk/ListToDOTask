@@ -31,10 +31,10 @@
                 <input asp-for="Date" class="form-control" type="date" />
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
-            @*<input type="text" name="listid" value="@ViewBag.ListName" hidden="hidden" />*@
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
+            <input asp-for="TaskListId" value="@ViewData["ListId"]" hidden="hidden" />
         </form>
     </div>
 </div>
