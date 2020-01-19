@@ -309,12 +309,13 @@ namespace ListOfTasks.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult EditTask(int id, ToDoTask task)
         {
+            ViewData["ListId"] = _currentList;
             if (ModelState.IsValid)
             {
                 var edit_task = _AllLists.FirstOrDefault(a => a.Name == _currentList)._ToDoList.Find(a => a.ToDoTaskId == id);
                 var lists = _AllLists.FirstOrDefault(a => a.Name == _currentList);
                 var task_title = _AllLists.FirstOrDefault(a => a.Name == _currentList)._ToDoList.Find(a => a.Title == task.Title);
-                if (task_title != null)
+                if (task_title.ToDoTaskId != id && task_title != null)
                 {
                     ModelState.AddModelError("", "Task with this Title exist! Change Title.");
                     return View(task);
