@@ -12,8 +12,9 @@ namespace ListOfTasks.Controllers
     public class ToDoListController : Controller
     {
         ToDoTasksClient _client = new ToDoTasksClient();
+        //Отримуємо один раз всі задачі і формуємо списки
         public async Task<IActionResult> Index()
-        {     
+        {    
             if(first)
             {
                 var tasks = await _client.GetTasksAsync();
@@ -65,6 +66,7 @@ namespace ListOfTasks.Controllers
         {
             return View();
         }
+        //Створюємо новий список
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(string taskList)
@@ -101,7 +103,7 @@ namespace ListOfTasks.Controllers
             ViewBag.Key = list;
             return View();
         }
-
+        //Редагуємо назву списку
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(string name, string list)
@@ -142,6 +144,7 @@ namespace ListOfTasks.Controllers
             ViewBag.Key = key;
             return View();
         }
+        //Видаляємо список і всі його задачі
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(string key)
@@ -168,6 +171,7 @@ namespace ListOfTasks.Controllers
             ViewData["ListId"] = list;
             return View();
         }
+        //Додаємо задачу до списків
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult AddTask(ToDoTask task)
@@ -215,7 +219,7 @@ namespace ListOfTasks.Controllers
             ModelState.AddModelError("", "Wrong data!!!");
             return View(task);
         }
-
+        //Виводимо список задач вибраного користувацького списку
         public IActionResult Tasks(string list, string sort)
         {
             _currentList = list;
@@ -230,6 +234,7 @@ namespace ListOfTasks.Controllers
             var task = SortOrder(sort, Task_list._ToDoList);
             return View(task);
         }
+        //Виконує soft delete вибраної задачі
         public IActionResult Complet(int id)
         {
             var tasks = _AllLists.FirstOrDefault(a => a.Name == _currentList);
@@ -248,6 +253,7 @@ namespace ListOfTasks.Controllers
             today_tasks._ToDoList.Add(item);
             return RedirectToAction("Tasks", "ToDoList", new { list = _currentList });
         }
+        //Виводимо розумний список задач
         public IActionResult SmartTasks(string smart, string sort, string hide = "show")
         {
             ViewData["HideComolet"] = hide == "hide" ? "show" : "hide";
@@ -290,6 +296,7 @@ namespace ListOfTasks.Controllers
             }
             return Redirect("Index");
         }
+        //Здійснює пошук за назвою задачі та виводить результат
         public IActionResult Search(string sort, string title_search)
         {
             ViewData["CurrentFilter"] = title_search;
@@ -313,6 +320,7 @@ namespace ListOfTasks.Controllers
             var task = all_tasks._ToDoList.FirstOrDefault(a => a.ToDoTaskId == id);
             return View(task);
         }
+        //Видаляємо задачу або мульти задачі, якщо вони є
         [HttpPost]
         public IActionResult DeleteTask(int id, bool del_mult)
         {
@@ -357,6 +365,7 @@ namespace ListOfTasks.Controllers
             }
             return RedirectToAction("Tasks", "ToDoList", new { list = _currentList });
         }
+        //Змінюємо задачу
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult EditTask(int id, ToDoTask task)
@@ -390,6 +399,7 @@ namespace ListOfTasks.Controllers
             ModelState.AddModelError("", "Wrong data!!!");
             return View(task);
         }
+        //Метод для сортування списку за пувними умовами
         public List<ToDoTask> SortOrder(string sort, List<ToDoTask> toDoTasks)
         {
             switch (sort)

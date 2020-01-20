@@ -4,6 +4,7 @@ using WebApi;
 
 namespace ListOfTasks.Models
 {
+    //Модель списку із задачами
     public class ToDoList
     {
         [Required(ErrorMessage ="Name must be set")]
