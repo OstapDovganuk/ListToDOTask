@@ -69,13 +69,26 @@ namespace ListOfTasks.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(string taskList)
         {
-            if (taskList != null)
+            if (ModelState.IsValid)
             {
-                ToDoList toDoList = new ToDoList();
-                toDoList.Name = taskList;
-                _AllLists.Add(toDoList);
-                return RedirectToAction(nameof(Index));
+                var list_exist = _AllLists.Find(a => a.Name == taskList);
+                if (list_exist == null)
+                {
+                    if (taskList != null)
+                    {
+                        ToDoList toDoList = new ToDoList();
+                        toDoList.Name = taskList;
+                        _AllLists.Add(toDoList);
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", "List with this Name exist! Change Name.");
+                    return View(taskList);
+                }
             }
+            ModelState.AddModelError("", "Task with this Title exist! Change Title or made task Multiple.");
             return View(taskList);
         }
         public ActionResult Edit(string list)
@@ -92,17 +105,31 @@ namespace ListOfTasks.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(string name, string key)
         {
-            var item = _AllLists.FirstOrDefault(a => a.Name == _currentList);
-            item.Name = name;
-            if (item._ToDoList != null)
+            if (ModelState.IsValid)
             {
-                foreach (var t in item._ToDoList)
+                var item = _AllLists.FirstOrDefault(a => a.Name == key);
+                var list_exist = _AllLists.Find(a => a.Name == name);
+                if (list_exist == null)
                 {
-                    t.TaskListId = name;
-                    _client.PutToDoTaskAsync(t.ToDoTaskId, t);
+                    item.Name = name;
+                    if (item._ToDoList != null)
+                    {
+                        foreach (var t in item._ToDoList)
+                        {
+                            t.TaskListId = name;
+                            _client.PutToDoTaskAsync(t.ToDoTaskId, t);
+                        }
+                    }
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    ModelState.AddModelError("", "List with this Name exist! Change Name.");
+                    return View(name);
                 }
             }
-            return RedirectToAction(nameof(Index));
+            ModelState.AddModelError("", "Wrong data!!!");
+            return View(name);
         }
 
         public ActionResult Delete(string key)
