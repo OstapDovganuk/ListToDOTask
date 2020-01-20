@@ -30,6 +30,7 @@ namespace ListOfTasks.Controllers
                         {
                             if (_listName == item.TaskListId)
                             {
+                                toDoList.Name = _listName;
                                 toDoList._ToDoList.Add(item);
                             }
                             else
