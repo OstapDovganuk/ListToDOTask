@@ -5,22 +5,22 @@
     <thead>
         <tr>
             <th>
-                Title
+                <a asp-action="SmartTasks" asp-route-sort="@ViewData["title"]" asp-route-smart="@ViewData["SmartName"]">Title</a>
             </th>
             <th>
-                Description
+                <a asp-action="SmartTasks" asp-route-sort="@ViewData["description"]" asp-route-smart="@ViewData["SmartName"]">Description</a>
             </th>
             <th>
-                Importance
+                <a asp-action="SmartTasks" asp-route-sort="@ViewData["taskimportance"]" asp-route-smart="@ViewData["SmartName"]">Importance</a>
             </th>
             <th>
-                Date
+                <a asp-action="SmartTasks" asp-route-sort="@ViewData["date"]" asp-route-smart="@ViewData["SmartName"]">Date</a>
             </th>
             <th>
-                IsComplet
+                <a asp-action="SmartTasks" asp-route-sort="@ViewData["isactive"]" asp-route-smart="@ViewData["SmartName"]">IsCompleted</a>
             </th>
             <th>
-                CreateDate
+                <a asp-action="SmartTasks" asp-route-sort="@ViewData["CreateDate"]" asp-route-smart="@ViewData["SmartName"]">CreateDate</a>
             </th>
             <th>
                 IsMultipleTask
@@ -34,32 +34,32 @@
     <tbody>
         @foreach (var item in Model._ToDoList)
         {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Title)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Description)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Taskimportance)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Date)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Isactive)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.IsMultipleTask)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.CreateDate)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.TaskListId)
-                </td>
-            </tr>
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Taskimportance)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Date)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Isactive)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreateDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsMultipleTask)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TaskListId)
+            </td>
+        </tr>
         }
     </tbody>
 </table>

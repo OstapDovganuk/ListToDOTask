@@ -85,11 +85,11 @@ namespace ListOfTasks.Controllers
                 else
                 {
                     ModelState.AddModelError("", "List with this Name exist! Change Name.");
-                    return View(taskList);
+                    return View();
                 }
             }
             ModelState.AddModelError("", "Task with this Title exist! Change Title or made task Multiple.");
-            return View(taskList);
+            return View();
         }
         public ActionResult Edit(string list)
         {
@@ -97,39 +97,44 @@ namespace ListOfTasks.Controllers
             {
                 return NotFound();
             }
+            _currentList = list;
             ViewBag.Key = list;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(string name, string key)
+        public IActionResult Edit(string name, string list)
         {
             if (ModelState.IsValid)
             {
-                var item = _AllLists.FirstOrDefault(a => a.Name == key);
+                ViewBag.Key = _currentList;
+                var item = _AllLists.FirstOrDefault(a => a.Name == _currentList);
                 var list_exist = _AllLists.Find(a => a.Name == name);
                 if (list_exist == null)
                 {
-                    item.Name = name;
-                    if (item._ToDoList != null)
+                    if (name != null)
                     {
-                        foreach (var t in item._ToDoList)
+                        item.Name = name;
+                        if (item._ToDoList != null)
                         {
-                            t.TaskListId = name;
-                            _client.PutToDoTaskAsync(t.ToDoTaskId, t);
+                            foreach (var t in item._ToDoList)
+                            {
+                                t.TaskListId = list;
+                                _client.PutToDoTaskAsync(t.ToDoTaskId, t);
+                            }
                         }
+                        return RedirectToAction(nameof(Index));
                     }
-                    return RedirectToAction(nameof(Index));
                 }
                 else
                 {
                     ModelState.AddModelError("", "List with this Name exist! Change Name.");
-                    return View(name);
+                    return View();
                 }
             }
             ModelState.AddModelError("", "Wrong data!!!");
-            return View(name);
+            return View();
         }
 
         public ActionResult Delete(string key)
@@ -174,18 +179,24 @@ namespace ListOfTasks.Controllers
                 if (task.IsMultipleTask != true)
                 {
                     var item = _AllLists.FirstOrDefault(a => a.Name == _currentList);
-                    foreach (var t in item._ToDoList)
+                    if (item != null)
                     {
-                        if (t.Title == task.Title)
+                        foreach (var t in item._ToDoList)
                         {
-                            ModelState.AddModelError("", "Task with this Title exist! Change Title or made task Multiple.");
-                            return View(task);
+                            if (t.Title == task.Title)
+                            {
+                                ModelState.AddModelError("", "Task with this Title exist! Change Title or made task Multiple.");
+                                return View(task);
+                            }
                         }
                     }
                 }
                 _client.PostToDoTaskAsync(task);
                 var temp = _AllLists.FirstOrDefault(a => a.Name == _currentList);
-                temp._ToDoList.Add(task);
+                if (temp != null)
+                {
+                    temp._ToDoList.Add(task);
+                }
                 all_tasks._ToDoList.Add(task);
                 if(task.Date!=null)
                 {
@@ -237,20 +248,34 @@ namespace ListOfTasks.Controllers
             today_tasks._ToDoList.Add(item);
             return RedirectToAction("Tasks", "ToDoList", new { list = _currentList });
         }
-        public IActionResult SmartTasks(string smart, string hide = "show")
+        public IActionResult SmartTasks(string smart, string sort, string hide = "show")
         {
             ViewData["HideComolet"] = hide == "hide" ? "show" : "hide";
             ViewData["SmartName"] = smart;
-            var all = all_tasks;
-            var planned = planned_tasks;
-            var impor = important_tasks;
-            var today = today_tasks;
-            if (hide=="hide")
+            ViewData["title"] = sort == "title" ? "title_desc" : "title";
+            ViewData["description"] = sort == "description" ? "description_desc" : "description";
+            ViewData["taskimportance"] = sort == "taskimportance" ? "taskimportance_desc" : "taskimportance";
+            ViewData["date"] = sort == "date" ? "date_desc" : "date";
+            ViewData["isactive"] = sort == "isactive" ? "isactive_desc" : "isactive";
+            ViewData["CreateDate"] = sort == "CreateDate" ? "CreateDate_desc" : "CreateDate";
+
+            ToDoList all = new ToDoList();
+            ToDoList planned = new ToDoList(); ;
+            ToDoList impor = new ToDoList(); ;
+            ToDoList today = new ToDoList(); ;
+            if (hide == "hide")
             {
-                all._ToDoList = all_tasks._ToDoList.Where(a => a.Isactive == false).ToList();
-                planned._ToDoList = planned_tasks._ToDoList.Where(a => a.Isactive == false).ToList();
-                impor._ToDoList = important_tasks._ToDoList.Where(a => a.Isactive == false).ToList();
-                today._ToDoList = today_tasks._ToDoList.Where(a => a.Isactive == false).ToList();
+                all._ToDoList = SortOrder(sort,all_tasks._ToDoList.Where(a => a.Isactive == false).ToList());
+                planned._ToDoList = SortOrder(sort, planned_tasks._ToDoList.Where(a => a.Isactive == false).ToList());
+                impor._ToDoList = SortOrder(sort, important_tasks._ToDoList.Where(a => a.Isactive == false).ToList());
+                today._ToDoList = SortOrder(sort, today_tasks._ToDoList.Where(a => a.Isactive == false).ToList());
+            }
+            else
+            {
+                all._ToDoList = SortOrder(sort, all_tasks._ToDoList);
+                planned._ToDoList = SortOrder(sort, planned_tasks._ToDoList);
+                impor._ToDoList = SortOrder(sort, important_tasks._ToDoList);
+                today._ToDoList = SortOrder(sort, today_tasks._ToDoList);
             }
             switch(smart)
                 {
