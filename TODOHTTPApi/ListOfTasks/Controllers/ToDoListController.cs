@@ -19,7 +19,7 @@ namespace ListOfTasks.Controllers
             {
                 var tasks = await _client.GetTasksAsync();
                 ToDoList toDoList = new ToDoList();
-                if (tasks != null)
+                if (tasks.Count != 0)
                 {
                     var sort_tasks = tasks.OrderBy(a => a.TaskListId);
                     string _listName = sort_tasks.First().TaskListId;
@@ -56,7 +56,7 @@ namespace ListOfTasks.Controllers
                             today_tasks._ToDoList.Add(item);
                         }
                     }
-                    _AllLists.Add(toDoList);
+                    _AllLists.Add(toDoList);                  
                 }
                 first = false;
             }
